@@ -12,6 +12,7 @@ classes:
 
 from datetime import date
 from http.client import HTTPResponse
+from json import loads
 from unittest import TestCase
 
 from exchangeratesapi import ExchangeRatesIO
@@ -48,14 +49,18 @@ class TestExchangeRatesIO(TestCase):
         self.assertIsInstance(response, HTTPResponse)
         self.assertEqual(response.status, 200)
         content = response.read()
-        self.assertEqual(type(content), bytes)
+        self.assertIsInstance(content, bytes)
+        content_j = loads(content)
+        self.assertEqual('USD', content_j['base'])
 
     def test_latest_base(self):
         response = self.xchg.latest(base='EUR')
         self.assertIsInstance(response, HTTPResponse)
         self.assertEqual(response.status, 200)
         content = response.read()
-        self.assertEqual(type(content), bytes)
+        self.assertIsInstance(content, bytes)
+        content_j = loads(content)
+        self.assertEqual('EUR', content_j['base'])
 
     def test_latest_json(self):
         response = self.xchg.latest(parse_json=True)
@@ -63,13 +68,14 @@ class TestExchangeRatesIO(TestCase):
         self.assertIn('base', response.keys())
         self.assertIn('date', response.keys())
         self.assertIn('rates', response.keys())
+        self.assertEqual(self.xchg.base_currency, response['base'])
 
     def test_latest_symbols(self):
         response = self.xchg.latest(symbols=('JPY', 'EUR'))
         self.assertIsInstance(response, HTTPResponse)
         self.assertEqual(response.status, 200)
         content = response.read()
-        self.assertEqual(type(content), bytes)
+        self.assertIsInstance(content, bytes)
 
         with self.assertRaises(TypeError):
             response = self.xchg.historical(date(2012, 9, 12),
@@ -98,6 +104,7 @@ class TestExchangeRatesIO(TestCase):
         self.assertIn('base', response.keys())
         self.assertIn('date', response.keys())
         self.assertIn('rates', response.keys())
+        self.assertEqual(self.xchg.base_currency, response['base'])
 
     def test_historical_range(self):
         response = self.xchg.historical(date(2012, 9, 12),
@@ -106,6 +113,8 @@ class TestExchangeRatesIO(TestCase):
         self.assertEqual(response.status, 200)
         content = response.read()
         self.assertIsInstance(content, bytes)
+        content_j = loads(content)
+        self.assertEqual(self.xchg.base_currency, content_j['base'])
 
         with self.assertRaises(AttributeError):
             response = self.xchg.historical(date(2012, 9, 20),
