@@ -66,10 +66,10 @@ class ExchangeRatesIO:
             http.client.HTTPResponse object
 
         raises:
-            http.client.HTTPException if the response code is ___?
+            http.client.HTTPException if the response code is not 200
         '''
         response = urlopen(url, data=data)
-        if response.status in (200, 201,):
+        if response.status == 200:
             return response
         raise HTTPException(
                 'status code received {}'.format(response.status))
